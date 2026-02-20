@@ -1,0 +1,38 @@
+pipeline {
+    agent any
+
+    environment {
+        SSH_CRED = 'node-app-key'
+        SERVER_IP = '54.67.84.65'
+        REMOTE_USER = 'ubuntu'
+        WEB_DIR = '/var/www/html'
+    }
+
+    stages {
+        stage('Clone Repo') {
+            steps {
+                git url: 'https://github.com/iamtruptimane/portfolio-app-deployment-CICD.git', branch: 'main'
+            }
+        }
+
+        stage('Deploy to Apache Server') {
+            steps {
+                sshagent(credentials: ["${SSH_CRED}"]) {
+                    sh '''
+                        echo "Preparing temp directory..."
+                        ssh -o StrictHostKeyChecking=no ${REMOTE_USER}@${SERVER_IP} "rm -rf /tmp/site && mkdir /tmp/site"
+
+                        echo "Uploading website files..."
+                        scp -o StrictHostKeyChecking=no -r * ${REMOTE_USER}@${SERVER_IP}:/tmp/site/
+
+                        echo "Cleaning Apache directory..."
+                        ssh -o StrictHostKeyChecking=no ${REMOTE_USER}@${SERVER_IP} "sudo rm -rf ${WEB_DIR}/*"
+
+                        echo "Deploying new files..."
+                        ssh -o StrictHostKeyChecking=no ${REMOTE_USER}@${SERVER_IP} "sudo cp -r /tmp/site/* ${WEB_DIR}/"
+                    '''
+                }
+            }
+        }
+    }
+}
