@@ -11,7 +11,7 @@ pipeline {
     stages {
         stage('Clone Repo') {
             steps {
-                git url: 'https://github.com/iamtruptimane/pythonapp.git', branch: 'master'
+                git url: 'https://github.com/rohi-del/demo.git', branch: 'master'
             }
         }
 
